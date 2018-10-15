@@ -1,0 +1,24 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="collective.garbagecan">
+
+  <genericsetup:registerProfile
+      name="default"
+      title="Garbage Can"
+      directory="profiles/default"
+      description='Extension profile for collective.garbagecan'
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+  <genericsetup:registerProfile
+      name="uninstall"
+      title="Uninstall garbagecan"
+      directory="profiles/uninstall"
+      description="uninstalls the collective.garbagecan package"
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      />
+
+</configure>
+

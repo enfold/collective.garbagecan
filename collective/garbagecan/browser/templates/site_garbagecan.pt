@@ -1,0 +1,77 @@
+<html
+    xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+    xmlns:tal="http://xml.zope.org/namespaces/tal"
+    xmlns:metal="http://xml.zope.org/namespaces/metal"
+    xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+    lang="en"
+    metal:use-macro="context/main_template/macros/master"
+    i18n:domain="collective.garbagecan">
+  <head>
+    <metal:block metal:fill-slot="top_slot"
+        tal:define="dummy python:request.set('disable_border', 1);
+                    disable_column_one python:request.set('disable_plone.leftcolumn', 1);
+                    disable_column_two python:request.set('disable_plone.rightcolumn', 1);"
+        />
+  </head>
+  <body>
+    <metal:title metal:fill-slot="content-title">
+      <h1 class="documentFirstHeading" i18n:translate="">
+        Site Garbage Can
+      </h1>
+    </metal:title>
+
+    <metal:content-core metal:fill-slot="content-core"
+        tal:define="Batch python:modules['Products.CMFPlone'].Batch;
+                    b_start python:request.get('b_start',0);
+                    batch python:Batch(view.list_contents(), 100, int(b_start), orphan=5);"
+        >
+      <form method="POST" tal:attributes="action request/URL">
+      <table class="listing">
+        <tbody>
+          <tr>
+            <th><input type="checkbox" name="select-all" id="select-all" /></th>
+            <th>Date</th>
+            <th>Deleted by</th>
+            <th>Path</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Contents</th>
+          </tr>
+          <tr tal:repeat="item batch">
+            <tal:block define="path python:item[0];
+                               obj python:item[1]">
+            <td><input type="checkbox" name="selected"
+                       tal:attributes="value path" /></td>
+            <td tal:content="obj/garbagecan_date/ctime"></td>
+            <td tal:content="python:view.user_display_name(obj.garbagecan_deleted_by)"></td>
+            <td tal:content="path"></td>
+            <td tal:content="obj/title"></td>
+            <td tal:content="obj/description"></td>
+            <td tal:content="obj/portal_type"></td>
+            <td>
+              <ul tal:condition="obj/isPrincipiaFolderish|nothing"
+                  tal:repeat="desc python:view.folder_contents(obj)">
+                <li tal:content="desc">desc</li>
+              </ul>
+            </td>
+            </tal:block>
+          </tr>
+        </tbody>
+      </table>
+      <div>
+        <input type="submit" name="expunge" value="Expunge" />
+        <input type="submit" name="restore" value="Restore" />
+      </div>
+      <div metal:use-macro="context/@@batch_macros/macros/navigation" />
+      </form>
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $('#select-all').click(
+            function() { $('input:checkbox').prop('checked', this.checked);
+            });
+        });
+      </script>
+    </metal:content-core>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:five="http://namespaces.zope.org/five"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    i18n_domain="collective.garbagecan">
+
+  <include package="five.globalrequest" />
+
+  <five:registerPackage package="." initialize=".initialize" />
+
+  <permission
+    id="collective.garbagecan.AccessGarbagecan"
+    title="collective.garbagecan: Access Garbage Can UI"
+    />
+
+  <include file="profiles.zcml" />
+  <include package=".browser" />
+
+  <adapter factory=".garbagecan.GarbageStorage" />
+
+  <subscriber
+    for="OFS.interfaces.IObjectWillBeRemovedEvent"
+    handler=".garbagecan.handle_deletion"
+    />
+
+</configure>
