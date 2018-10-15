@@ -17,3 +17,14 @@ def getUser():
         else:
             username = 'unknown'
     return username
+
+
+def isInstalled():
+    site = getSite()
+    try:
+        qi = getToolByName(site, 'portal_quickinstaller')
+    except AttributeError:
+        return False
+    prods = qi.listInstalledProducts()
+    gc = [p for p in prods if p['id'] == 'collective.garbagecan']
+    return gc and True or False

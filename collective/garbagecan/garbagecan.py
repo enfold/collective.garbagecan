@@ -11,6 +11,7 @@ from plone.app.layout.navigation.interfaces import INavigationRoot
 
 from .interfaces import IGarbageStorage
 from .utils import getUser
+from .utils import isInstalled
 
 
 GARBAGECAN_KEY = 'collective.garbagecan'
@@ -76,6 +77,8 @@ class GarbageStorage(object):
 
 
 def handle_deletion(event):
+    if not isInstalled():
+        return
     site = getSite()
     storage = IGarbageStorage(site)
     storage.dispose(event.object)
