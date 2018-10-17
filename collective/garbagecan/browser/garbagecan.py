@@ -1,9 +1,17 @@
+from zope.event import notify
 from Products.Five.browser import BrowserView
 
 from plone.api import portal
 from plone.api import user
 
 from ..interfaces import IGarbageStorage
+
+
+try:
+    from collective.auditlog.interfaces import AuditableActionPerformedEvent
+    AUDIT = True
+except ImportError:
+    AUDIT = False
 
 
 class SiteGarbagecanView(BrowserView):
@@ -38,8 +46,18 @@ class SiteGarbagecanView(BrowserView):
             if expunge is not None:
                 for path in selected:
                     storage.expunge(path)
+                if AUDIT:
+                    notify(AuditableActionPerformedEvent(self.context,
+                                                         self.request,
+                                                         'Expunge',
+                                                         ', '.join(selected)))
             restore = self.request.get('restore', None)
             if restore is not None:
                 for path in selected:
                     storage.restore(path)
+                if AUDIT:
+                    notify(AuditableActionPerformedEvent(self.context,
+                                                         self.request,
+                                                         'Restore',
+                                                         ', '.join(selected)))
         return super(SiteGarbagecanView, self).__call__()

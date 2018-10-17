@@ -19,8 +19,9 @@ def getUser():
     return username
 
 
-def isInstalled():
-    site = getSite()
+def isInstalled(site=None):
+    if site is None:
+        site = getSite()
     try:
         qi = getToolByName(site, 'portal_quickinstaller')
     except AttributeError:

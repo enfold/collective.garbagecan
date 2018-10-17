@@ -40,5 +40,8 @@ setup(
 
       [z3c.autoinclude.plugin]
       target = plone
+
+      [console_scripts]
+      expunge = collective.garbagecan.scripts.expunge:main
       """
 )
