@@ -63,7 +63,7 @@ class GarbageStorage(object):
             parent_path, item_id = path.rsplit('/', 1)
             path_from_site = parent_path[2+len(site.id):]
             try:
-                parent = site.restrictedTraverse(path_from_site)
+                parent = site.unrestrictedTraverse(path_from_site)
             except KeyError:
                 message = "One or more containers in path {} do not exist"
                 raise ContainerGone(message.format(parent_path))
