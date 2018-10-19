@@ -12,6 +12,12 @@
                     disable_column_one python:request.set('disable_plone.leftcolumn', 1);
                     disable_column_two python:request.set('disable_plone.rightcolumn', 1);"
         />
+    <metal:block metal:fill-slot="javascript_head_slot">
+      <script src="++resource++plone.formwidget.contenttree/contenttree.js" />
+    </metal:block>
+    <metal:block metal:fill-slot="style_slot">
+      <link rel="stylesheet" href="++resource++plone.formwidget.contenttree/contenttree.css" />
+    </metal:block>
   </head>
   <body>
     <metal:title metal:fill-slot="content-title">
@@ -20,10 +26,11 @@
       </h1>
     </metal:title>
 
-    <metal:content-core metal:fill-slot="content-core"
-        tal:define="Batch python:modules['Products.CMFPlone'].Batch;
-                    b_start python:request.get('b_start',0);
-                    batch python:Batch(view.list_contents(), 100, int(b_start), orphan=5);"
+    <metal:content-core metal:fill-slot="content-core">
+      <tal:block condition="not:view/problems|nothing"
+          define="Batch python:modules['Products.CMFPlone'].Batch;
+                  b_start python:request.get('b_start',0);
+                  batch python:Batch(view.list_contents(), 100, int(b_start), orphan=5);"
         >
       <form method="POST" tal:attributes="action request/URL">
       <table class="listing">
@@ -72,6 +79,23 @@
             });
         });
       </script>
+      </tal:block>
+
+      <tal:block condition="python:view.selected and view.problems"
+                 define="problem_form view/problem_form|nothing">
+      <p>Some problems were found while trying to restore:</p>
+         <ul>
+           <li tal:repeat="item view/selected" tal:content="item"> </li>
+         </ul>
+      <tal:with-form-as-view define="view nocall:view/problem_form">
+        <metal:block use-macro="problem_form/@@ploneform-macros/titlelessform" />
+      </tal:with-form-as-view>
+      <input type="button" name="continue" value="Continue Restore" 
+             onClick="$('#content-core form').eq(0).submit()" />
+      <input type="button" name="cancel" value="Cancel"
+             onClick="window.location=$('#content-core form').eq(0).attr('action')" />
+      </tal:block>
     </metal:content-core>
+
   </body>
 </html>

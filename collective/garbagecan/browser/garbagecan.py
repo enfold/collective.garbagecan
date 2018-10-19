@@ -1,9 +1,17 @@
+from z3c.form import field
+from z3c.form import form
+from z3c.form import interfaces
+from zope import schema
 from zope.event import notify
+from zope.interface import Interface
 from Products.Five.browser import BrowserView
+from Products.statusmessages.interfaces import IStatusMessage
 
 from plone.api import portal
 from plone.api import user
+from plone.i18n.normalizer import idnormalizer
 
+from ..interfaces import _
 from ..interfaces import IGarbageStorage
 
 
@@ -35,29 +43,157 @@ class SiteGarbagecanView(BrowserView):
             display = username
         return display
 
-    def __call__(self):
+    def expunge(self):
         selected = self.request.get('selected', None)
+        site = portal.get()
         if selected is not None:
             if not isinstance(selected, list):
                 selected = [selected]
+            storage = IGarbageStorage(site)
+            selected_text = ', '.join(selected)
+            for path in selected:
+                storage.expunge(path)
+            if AUDIT:
+                notify(AuditableActionPerformedEvent(self.context,
+                                                     self.request,
+                                                     'Expunge',
+                                                     selected_text))
+            IStatusMessage(self.request).add(
+                _(u'Expunged: ${selected}.',
+                    mapping={u'selected': selected_text}))
+
+    def restore(self, oldselected=None):
+        selected = self.request.get('selected', oldselected)
+        problems = {'container_gone': [],
+                    'existing_id': [],
+                    'unrestorable': [],
+                    }
+        restore = True
+        if selected is not None:
+            if not isinstance(selected, list):
+                selected = [selected]
+            self.selected = selected
             site = portal.get()
             storage = IGarbageStorage(site)
-            expunge = self.request.get('expunge', None)
-            if expunge is not None:
+            idxid = 0
+            idxcon = 0
+            fixed = 0
+            for path in selected:
+                restorability = storage.restorability(path)
+                if restorability == 'container_gone':
+                    problems[restorability].append(path)
+                    restore = False
+                    if self.newcontainers:
+                        fixrest = storage.restorability(path,
+                            newcontainer=self.newcontainers[idxcon])
+                        if fixrest == 'restorable':
+                            fixed += 1
+                    idxcon += 1
+                if restorability == 'existing_id':
+                    problems[restorability].append(path)
+                    restore = False
+                    if self.newids:
+                        fixrest = storage.restorability(path,
+                            newid=self.newids[idxid])
+                        if fixrest == 'restorable':
+                            fixed += 1
+                    idxid += 1
+                if fixed == idxid + idxcon:
+                    restore = True
+            if restore:
+                idxid = 0
+                idxcon = 0
                 for path in selected:
-                    storage.expunge(path)
-                if AUDIT:
-                    notify(AuditableActionPerformedEvent(self.context,
-                                                         self.request,
-                                                         'Expunge',
-                                                         ', '.join(selected)))
-            restore = self.request.get('restore', None)
-            if restore is not None:
-                for path in selected:
-                    storage.restore(path)
+                    if self.newids and path in problems['existing_id']:
+                        storage.restore(path, newid=self.newids[idxid])
+                        idxid += 1
+                    elif self.newcontainers and path in problems['container_gone']:
+                        storage.restore(path,
+                                newcontainer=self.newcontainers[idxcon])
+                        idxcon += 1
+                    else:
+                        storage.restore(path)
                 if AUDIT:
                     notify(AuditableActionPerformedEvent(self.context,
                                                          self.request,
                                                          'Restore',
                                                          ', '.join(selected)))
+                IStatusMessage(self.request).add(
+                    _(u'Restored: ${selected}.',
+                      mapping={u'selected': ', '.join(selected)}))
+            else:
+                self.problems = problems
+
+                problem_form = GarbagecanRestoreForm(self.context,
+                                                     self.request,
+                                                     selected,
+                                                     problems)
+                problem_form.update()
+                self.problem_form = problem_form
+
+    def continue_restore(self):
+        self.newcontainers = [self.request[k] for k in self.request.keys()
+                              if k.startswith('widgets.container_gone_')]
+        self.newids = [self.request[k] for k in self.request.keys()
+                       if k.startswith('widgets.existing_id_')]
+        oldselected = self.request.get('widgets.selected', None)
+        oldselected = oldselected.split()
+        self.restore(oldselected=oldselected)
+
+    def __call__(self):
+        self.selected = []
+        self.problems = None
+        self.newids = []
+        self.newcontainers = []
+        if self.request.get('expunge', None) is not None:
+            self.expunge()
+        if self.request.get('restore', None) is not None:
+            self.restore()
+        if self.request.get('widgets.selected', None) is not None:
+            self.continue_restore()
         return super(SiteGarbagecanView, self).__call__()
+
+
+class IGarbagecanBaseField(Interface):
+    """No initial fields"""
+
+
+class GarbagecanRestoreForm(form.Form):
+
+    prefix = ''
+
+    fields = field.Fields(IGarbagecanBaseField)
+
+    ignoreContext = True
+
+    def __init__(self, context, request, selected=None, problems=None):
+        super(GarbagecanRestoreForm, self).__init__(context, request)
+        fields = self.fields
+        self.selected = selected
+        self.problems = problems
+        if selected is not None and problems is not None:
+            hidden = schema.List(
+                    __name__='selected',
+                    readonly=True,
+                    value_type=schema.TextLine(),
+                    default=selected)
+            fields += field.Fields(hidden)
+            fields['selected'].mode = interfaces.HIDDEN_MODE
+            fields['selected'].widget = interfaces.HIDDEN_MODE
+            for num, problem in enumerate(problems['container_gone']):
+                cfield = schema.TextLine(
+                    __name__='container_gone_' + str(num),
+                    title=u'Container for ' + problem,
+                    description=u'Container moved or deleted. Pick new container. Please use full path',
+                    required=True,
+                )
+                fields += field.Fields(cfield)
+            for num, problem in enumerate(problems['existing_id']):
+                cfield = schema.TextLine(
+                    __name__='existing_id_' + str(num),
+                    title=u'Id for ' + problem,
+                    description=u'Id in use in this container. Pick new id',
+                    required=True,
+                )
+                fields += field.Fields(cfield)
+        self.fields = fields

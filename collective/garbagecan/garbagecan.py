@@ -55,12 +55,39 @@ class GarbageStorage(object):
         if path in self.annotations[GARBAGECAN_KEY]:
             del self.annotations[GARBAGECAN_KEY][path]
 
-    def restore(self, path):
+    def restorability(self, path, newid=None, newcontainer=None):
+        state = 'restorable'
         self.check_initialized()
         item = self.annotations[GARBAGECAN_KEY].get(path, None)
         if item is not None:
             site = getSite()
             parent_path, item_id = path.rsplit('/', 1)
+            if newid is not None:
+                item_id = newid
+            if newcontainer is not None:
+                parent_path = newcontainer
+            path_from_site = parent_path[2+len(site.id):]
+            try:
+                parent = site.unrestrictedTraverse(path_from_site)
+            except KeyError:
+                state = 'container_gone'
+                parent = None
+            if parent and item_id in parent.objectIds():
+                state = 'existing_id'
+        else:
+            state = 'unrestorable'
+        return state
+
+    def restore(self, path, newid=None, newcontainer=None):
+        self.check_initialized()
+        item = self.annotations[GARBAGECAN_KEY].get(path, None)
+        if item is not None:
+            site = getSite()
+            parent_path, item_id = path.rsplit('/', 1)
+            if newid is not None:
+                item_id = newid
+            if newcontainer is not None:
+                parent_path = newcontainer
             path_from_site = parent_path[2+len(site.id):]
             try:
                 parent = site.unrestrictedTraverse(path_from_site)
@@ -72,6 +99,7 @@ class GarbageStorage(object):
                 raise ExistingId(message.format(parent_path, item_id))
             del item.garbagecan_date
             del item.garbagecan_deleted_by
+            item.id = item_id
             parent._setObject(item_id, item)
             del self.annotations[GARBAGECAN_KEY][path]
 
