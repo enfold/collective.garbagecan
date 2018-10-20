@@ -51,8 +51,8 @@ class SiteGarbagecanView(BrowserView):
                 selected = [selected]
             storage = IGarbageStorage(site)
             selected_text = ', '.join(selected)
-            for path in selected:
-                storage.expunge(path)
+            for key in selected:
+                storage.expunge(key)
             if AUDIT:
                 notify(AuditableActionPerformedEvent(self.context,
                                                      self.request,
@@ -78,22 +78,22 @@ class SiteGarbagecanView(BrowserView):
             idxid = 0
             idxcon = 0
             fixed = 0
-            for path in selected:
-                restorability = storage.restorability(path)
+            for key in selected:
+                restorability = storage.restorability(key)
                 if restorability == 'container_gone':
-                    problems[restorability].append(path)
+                    problems[restorability].append(key)
                     restore = False
                     if self.newcontainers:
-                        fixrest = storage.restorability(path,
+                        fixrest = storage.restorability(key,
                             newcontainer=self.newcontainers[idxcon])
                         if fixrest == 'restorable':
                             fixed += 1
                     idxcon += 1
                 if restorability == 'existing_id':
-                    problems[restorability].append(path)
+                    problems[restorability].append(key)
                     restore = False
                     if self.newids:
-                        fixrest = storage.restorability(path,
+                        fixrest = storage.restorability(key,
                             newid=self.newids[idxid])
                         if fixrest == 'restorable':
                             fixed += 1
@@ -103,16 +103,16 @@ class SiteGarbagecanView(BrowserView):
             if restore:
                 idxid = 0
                 idxcon = 0
-                for path in selected:
-                    if self.newids and path in problems['existing_id']:
-                        storage.restore(path, newid=self.newids[idxid])
+                for key in selected:
+                    if self.newids and key in problems['existing_id']:
+                        storage.restore(key, newid=self.newids[idxid])
                         idxid += 1
-                    elif self.newcontainers and path in problems['container_gone']:
-                        storage.restore(path,
+                    elif self.newcontainers and key in problems['container_gone']:
+                        storage.restore(key,
                                 newcontainer=self.newcontainers[idxcon])
                         idxcon += 1
                     else:
-                        storage.restore(path)
+                        storage.restore(key)
                 if AUDIT:
                     notify(AuditableActionPerformedEvent(self.context,
                                                          self.request,
@@ -134,8 +134,9 @@ class SiteGarbagecanView(BrowserView):
     def continue_restore(self):
         self.newcontainers = [self.request[k] for k in self.request.keys()
                               if k.startswith('widgets.container_gone_')]
-        self.newids = [self.request[k] for k in self.request.keys()
-                       if k.startswith('widgets.existing_id_')]
+        newids = [self.request[k] for k in self.request.keys()
+                  if k.startswith('widgets.existing_id_')]
+        self.newids = map(idnormalizer.normalize, newids)
         oldselected = self.request.get('widgets.selected', None)
         oldselected = oldselected.split()
         self.restore(oldselected=oldselected)
@@ -183,7 +184,7 @@ class GarbagecanRestoreForm(form.Form):
             for num, problem in enumerate(problems['container_gone']):
                 cfield = schema.TextLine(
                     __name__='container_gone_' + str(num),
-                    title=u'Container for ' + problem,
+                    title=u'Container for ' + problem.split(':')[0],
                     description=u'Container moved or deleted. Pick new container. Please use full path',
                     required=True,
                 )
@@ -191,7 +192,7 @@ class GarbagecanRestoreForm(form.Form):
             for num, problem in enumerate(problems['existing_id']):
                 cfield = schema.TextLine(
                     __name__='existing_id_' + str(num),
-                    title=u'Id for ' + problem,
+                    title=u'Id for ' + problem.split(':')[0],
                     description=u'Id in use in this container. Pick new id',
                     required=True,
                 )

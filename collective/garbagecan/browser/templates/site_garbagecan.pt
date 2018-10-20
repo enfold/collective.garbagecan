@@ -46,10 +46,11 @@
             <th>Contents</th>
           </tr>
           <tr tal:repeat="item batch">
-            <tal:block define="path python:item[0];
-                               obj python:item[1]">
+            <tal:block define="key python:item[0];
+                               obj python:item[1];
+                               path python:key.split(':')[0]">
             <td><input type="checkbox" name="selected"
-                       tal:attributes="value path" /></td>
+                       tal:attributes="value key" /></td>
             <td tal:content="obj/garbagecan_date/ctime"></td>
             <td tal:content="python:view.user_display_name(obj.garbagecan_deleted_by)"></td>
             <td tal:content="path"></td>
@@ -85,7 +86,7 @@
                  define="problem_form view/problem_form|nothing">
       <p>Some problems were found while trying to restore:</p>
          <ul>
-           <li tal:repeat="item view/selected" tal:content="item"> </li>
+           <li tal:repeat="item view/selected" tal:content="python:item.split(':')[0]"> </li>
          </ul>
       <tal:with-form-as-view define="view nocall:view/problem_form">
         <metal:block use-macro="problem_form/@@ploneform-macros/titlelessform" />

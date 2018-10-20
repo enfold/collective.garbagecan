@@ -43,32 +43,33 @@ class GarbageStorage(object):
 
     def dispose(self, item):
         self.check_initialized()
-        key = item.absolute_url_path()
+        key = '{}:{}'.format(item.virtual_url_path(),
+                             item.creation_date.millis())
         item.garbagecan_date = datetime.now()
         item.relatedItems = []
         user = getUser()
         item.garbagecan_deleted_by = user
         self.annotations[GARBAGECAN_KEY][key] = item
 
-    def expunge(self, path):
+    def expunge(self, key):
         self.check_initialized()
-        if path in self.annotations[GARBAGECAN_KEY]:
-            del self.annotations[GARBAGECAN_KEY][path]
+        if key in self.annotations[GARBAGECAN_KEY]:
+            del self.annotations[GARBAGECAN_KEY][key]
 
-    def restorability(self, path, newid=None, newcontainer=None):
+    def restorability(self, key, newid=None, newcontainer=None):
         state = 'restorable'
         self.check_initialized()
-        item = self.annotations[GARBAGECAN_KEY].get(path, None)
+        item = self.annotations[GARBAGECAN_KEY].get(key, None)
         if item is not None:
+            path = key.split(':')[0]
             site = getSite()
             parent_path, item_id = path.rsplit('/', 1)
             if newid is not None:
                 item_id = newid
             if newcontainer is not None:
                 parent_path = newcontainer
-            path_from_site = parent_path[2+len(site.id):]
             try:
-                parent = site.unrestrictedTraverse(path_from_site)
+                parent = site.unrestrictedTraverse(parent_path)
             except KeyError:
                 state = 'container_gone'
                 parent = None
@@ -78,19 +79,19 @@ class GarbageStorage(object):
             state = 'unrestorable'
         return state
 
-    def restore(self, path, newid=None, newcontainer=None):
+    def restore(self, key, newid=None, newcontainer=None):
         self.check_initialized()
-        item = self.annotations[GARBAGECAN_KEY].get(path, None)
+        item = self.annotations[GARBAGECAN_KEY].get(key, None)
         if item is not None:
+            path = key.split(':')[0]
             site = getSite()
             parent_path, item_id = path.rsplit('/', 1)
             if newid is not None:
                 item_id = newid
             if newcontainer is not None:
                 parent_path = newcontainer
-            path_from_site = parent_path[2+len(site.id):]
             try:
-                parent = site.unrestrictedTraverse(path_from_site)
+                parent = site.unrestrictedTraverse(parent_path)
             except KeyError:
                 message = "One or more containers in path {} do not exist"
                 raise ContainerGone(message.format(parent_path))
@@ -101,7 +102,7 @@ class GarbageStorage(object):
             del item.garbagecan_deleted_by
             item.id = item_id
             parent._setObject(item_id, item)
-            del self.annotations[GARBAGECAN_KEY][path]
+            del self.annotations[GARBAGECAN_KEY][key]
 
 
 def handle_deletion(event):

@@ -53,12 +53,12 @@ def main(argv=sys.argv):
     storage = IGarbageStorage(site)
     if storage and isInstalled(site=site):
         expunge = []
-        for path, item in storage.garbagecan_contents():
+        for key, item in storage.garbagecan_contents():
             delta = now - item.garbagecan_date
             if delta.days > days:
-                expunge.append(path)
-        for path in expunge:
-            storage.expunge(path)
+                expunge.append(key)
+        for key in expunge:
+            storage.expunge(key)
             if AUDIT:
                 notify(AuditableActionPerformedEvent(site,
                                                      request,
