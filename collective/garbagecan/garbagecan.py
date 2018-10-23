@@ -43,7 +43,7 @@ class GarbageStorage(object):
 
     def dispose(self, item):
         self.check_initialized()
-        key = '{}:{}'.format(item.virtual_url_path(),
+        key = '{}:{}'.format('/'.join(item.getPhysicalPath()),
                              item.creation_date.millis())
         item.garbagecan_date = datetime.now()
         item.relatedItems = []
