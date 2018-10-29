@@ -13,6 +13,7 @@ from plone.i18n.normalizer import idnormalizer
 
 from ..interfaces import _
 from ..interfaces import IGarbageStorage
+from ..utils import getUser
 
 
 try:
@@ -23,6 +24,8 @@ except ImportError:
 
 
 class SiteGarbagecanView(BrowserView):
+
+    RESTRICTED = False
 
     def list_contents(self):
         site = portal.get()
@@ -50,7 +53,8 @@ class SiteGarbagecanView(BrowserView):
             if not isinstance(selected, list):
                 selected = [selected]
             storage = IGarbageStorage(site)
-            selected_text = ', '.join(selected)
+            selected_text = ', '.join(
+                [s.split(':')[0] for s in selected])
             for key in selected:
                 storage.expunge(key)
             if AUDIT:
@@ -105,14 +109,17 @@ class SiteGarbagecanView(BrowserView):
                 idxcon = 0
                 for key in selected:
                     if self.newids and key in problems['existing_id']:
-                        storage.restore(key, newid=self.newids[idxid])
+                        storage.restore(key,
+                                        newid=self.newids[idxid],
+                                        restricted=self.RESTRICTED)
                         idxid += 1
                     elif self.newcontainers and key in problems['container_gone']:
                         storage.restore(key,
-                                newcontainer=self.newcontainers[idxcon])
+                                newcontainer=self.newcontainers[idxcon],
+                                restricted=self.RESTRICTED)
                         idxcon += 1
                     else:
-                        storage.restore(key)
+                        storage.restore(key, restricted=self.RESTRICTED)
                 if AUDIT:
                     notify(AuditableActionPerformedEvent(self.context,
                                                          self.request,
@@ -120,7 +127,8 @@ class SiteGarbagecanView(BrowserView):
                                                          ', '.join(selected)))
                 IStatusMessage(self.request).add(
                     _(u'Restored: ${selected}.',
-                      mapping={u'selected': ', '.join(selected)}))
+                      mapping={u'selected': ', '.join(
+                          [s.split(':')[0] for s in selected])}))
             else:
                 self.problems = problems
 
@@ -155,6 +163,20 @@ class SiteGarbagecanView(BrowserView):
         return super(SiteGarbagecanView, self).__call__()
 
 
+class MyGarbagecanView(SiteGarbagecanView):
+
+    RESTRICTED = True
+
+    def list_contents(self):
+        site = portal.get()
+        storage = IGarbageStorage(site)
+        contents = [i for i in storage.garbagecan_contents()
+                    if i[1].garbagecan_deleted_by == getUser()]
+        return sorted(contents,
+                      key=lambda n: n[1].garbagecan_date,
+                      reverse=True)
+
+
 class IGarbagecanBaseField(Interface):
     """No initial fields"""
 
@@ -185,7 +207,7 @@ class GarbagecanRestoreForm(form.Form):
                 cfield = schema.TextLine(
                     __name__='container_gone_' + str(num),
                     title=u'Container for ' + problem.split(':')[0],
-                    description=u'Container moved or deleted. Pick new container. Please use full path',
+                    description=u'Container moved or deleted. Pick new container. Use relative path from site.',
                     required=True,
                 )
                 fields += field.Fields(cfield)

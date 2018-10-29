@@ -13,4 +13,12 @@
       permission="collective.garbagecan.AccessGarbagecan"
       />
 
+  <browser:page
+      name="my-garbagecan"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".garbagecan.MyGarbagecanView"
+      template="templates/site_garbagecan.pt"
+      permission="zope2.View"
+      />
+
 </configure>

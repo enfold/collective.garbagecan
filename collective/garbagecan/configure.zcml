@@ -19,7 +19,8 @@
   <adapter factory=".garbagecan.GarbageStorage" />
 
   <subscriber
-    for="OFS.interfaces.IObjectWillBeRemovedEvent"
+    for="Products.CMFCore.interfaces.IContentish
+         OFS.interfaces.IObjectWillBeRemovedEvent"
     handler=".garbagecan.handle_deletion"
     />
 

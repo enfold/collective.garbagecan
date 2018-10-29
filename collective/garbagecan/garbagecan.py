@@ -79,19 +79,22 @@ class GarbageStorage(object):
             state = 'unrestorable'
         return state
 
-    def restore(self, key, newid=None, newcontainer=None):
+    def restore(self, key, newid=None, newcontainer=None, restricted=False):
         self.check_initialized()
         item = self.annotations[GARBAGECAN_KEY].get(key, None)
         if item is not None:
             path = key.split(':')[0]
             site = getSite()
+            traverse = site.unrestrictedTraverse
+            if restricted:
+                traverse = site.restrictedTraverse
             parent_path, item_id = path.rsplit('/', 1)
             if newid is not None:
                 item_id = newid
             if newcontainer is not None:
                 parent_path = newcontainer
             try:
-                parent = site.unrestrictedTraverse(parent_path)
+                parent = traverse(parent_path)
             except KeyError:
                 message = "One or more containers in path {} do not exist"
                 raise ContainerGone(message.format(parent_path))
@@ -105,9 +108,9 @@ class GarbageStorage(object):
             del self.annotations[GARBAGECAN_KEY][key]
 
 
-def handle_deletion(event):
+def handle_deletion(obj, event):
     if not isInstalled():
         return
     site = getSite()
     storage = IGarbageStorage(site)
-    storage.dispose(event.object)
+    storage.dispose(obj)
