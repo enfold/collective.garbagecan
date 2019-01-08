@@ -40,8 +40,10 @@ class SiteGarbagecanView(BrowserView):
                 for i in folderish.objectValues()]
 
     def user_display_name(self, username):
+        display = None
         obj = user.get(userid=username)
-        display = obj.getProperty('fullname')
+        if obj is not None:
+            display = obj.getProperty('fullname')
         if not display:
             display = username
         return display
