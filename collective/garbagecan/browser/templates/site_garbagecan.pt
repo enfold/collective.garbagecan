@@ -48,15 +48,18 @@
           <tr tal:repeat="item batch">
             <tal:block define="key python:item[0];
                                obj python:item[1];
-                               path python:key.split(':')[0]">
+                               path python:key.split(':')[0];
+                               title obj/title|nothing;
+                               description obj/description|nothing;
+                               portal_type obj/portal_type|nothing;">
             <td><input type="checkbox" name="selected"
                        tal:attributes="value key" /></td>
             <td tal:content="obj/garbagecan_date/ctime"></td>
             <td tal:content="python:view.user_display_name(obj.garbagecan_deleted_by)"></td>
             <td tal:content="path"></td>
-            <td tal:content="obj/title"></td>
-            <td tal:content="obj/description"></td>
-            <td tal:content="obj/portal_type"></td>
+            <td tal:content="title"></td>
+            <td tal:content="description"></td>
+            <td tal:content="portal_type"></td>
             <td>
               <ul tal:condition="obj/isPrincipiaFolderish|nothing"
                   tal:repeat="desc python:view.folder_contents(obj)">
