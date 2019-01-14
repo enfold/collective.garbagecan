@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from Acquisition import aq_base
 from BTrees.OOBTree import OOBTree
 
 from zope.interface import implements
@@ -104,7 +105,7 @@ class GarbageStorage(object):
             del item.garbagecan_date
             del item.garbagecan_deleted_by
             item.id = item_id
-            parent._setObject(item_id, item)
+            parent._setObject(item_id, aq_base(item))
             del self.annotations[GARBAGECAN_KEY][key]
 
 
