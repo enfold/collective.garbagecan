@@ -54,19 +54,20 @@ class SiteGarbagecanView(BrowserView):
         if selected is not None:
             if not isinstance(selected, list):
                 selected = [selected]
+            paths = list()
             storage = IGarbageStorage(site)
-            selected_text = ', '.join(
-                [s.split(':')[0] for s in selected])
             for key in selected:
                 storage.expunge(key)
-            if AUDIT:
-                notify(AuditableActionPerformedEvent(self.context,
-                                                     self.request,
-                                                     'Expunge',
-                                                     selected_text))
+                path = key.split(':')[0]
+                paths.append(path)
+                if AUDIT:
+                    notify(AuditableActionPerformedEvent(self.context,
+                                                         self.request,
+                                                         'Expunge',
+                                                         path))
             IStatusMessage(self.request).add(
                 _(u'Expunged: ${selected}.',
-                    mapping={u'selected': selected_text}))
+                    mapping={u'selected': ','.join(paths)}))
 
     def restore(self, oldselected=None):
         selected = self.request.get('selected', oldselected)
@@ -107,6 +108,7 @@ class SiteGarbagecanView(BrowserView):
                 if fixed == idxid + idxcon:
                     restore = True
             if restore:
+                paths = list()
                 idxid = 0
                 idxcon = 0
                 for key in selected:
@@ -122,15 +124,16 @@ class SiteGarbagecanView(BrowserView):
                         idxcon += 1
                     else:
                         storage.restore(key, restricted=self.RESTRICTED)
-                if AUDIT:
-                    notify(AuditableActionPerformedEvent(self.context,
-                                                         self.request,
-                                                         'Restore',
-                                                         ', '.join(selected)))
+                    path = key.split(':')[0]
+                    paths.append(path)
+                    if AUDIT:
+                        notify(AuditableActionPerformedEvent(self.context,
+                                                             self.request,
+                                                             'Restore',
+                                                             path))
                 IStatusMessage(self.request).add(
                     _(u'Restored: ${selected}.',
-                      mapping={u'selected': ', '.join(
-                          [s.split(':')[0] for s in selected])}))
+                      mapping={u'selected': ', '.join(paths)}))
             else:
                 self.problems = problems
 

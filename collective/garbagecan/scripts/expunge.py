@@ -62,6 +62,6 @@ def main(argv=sys.argv):
             if AUDIT:
                 notify(AuditableActionPerformedEvent(site,
                                                      request,
-                                                     'Restore (script)',
-                                                     ', '.join(expunge)))
+                                                     'Expunge (script)',
+                                                     key.split(':')[0]))
             transaction.commit()

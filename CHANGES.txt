@@ -8,3 +8,7 @@ Changelog
   have the title, description, or portal_type attributes.
 
 - Remove acquisition context before adding restored item to container.
+
+- #2602355: Add separate audit log entry for each item that is restored or
+  expunged. Log correct action for expunge script.
+  [2019-02-20]
