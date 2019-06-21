@@ -11,6 +11,8 @@ class TestStorage(BaseTestCase):
 
     def test_dispose(self):
         self.portal.invokeFactory('Document', 'd1', title='Doc 1')
-        self.portal.manage_delObjects(['d1'])
+        item = self.portal['d1']
         storage = IGarbageStorage(self.portal)
-        self.assertTrue('/plone/d1' in storage.annotations[GARBAGECAN_KEY])
+        key = storage.get_key(item)
+        self.portal.manage_delObjects(['d1'])
+        self.assertTrue(key in storage.annotations[GARBAGECAN_KEY])

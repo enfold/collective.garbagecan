@@ -44,13 +44,16 @@ class GarbageStorage(object):
 
     def dispose(self, item):
         self.check_initialized()
-        key = '{}:{}'.format('/'.join(item.getPhysicalPath()),
-                             item.creation_date.millis())
+        key = self.get_key(item)
         item.garbagecan_date = datetime.now()
         item.relatedItems = []
         user = getUser()
         item.garbagecan_deleted_by = user
         self.annotations[GARBAGECAN_KEY][key] = item
+
+    def get_key(self, item):
+        return '{}:{}'.format('/'.join(item.getPhysicalPath()),
+                              item.creation_date.millis())
 
     def expunge(self, key):
         self.check_initialized()

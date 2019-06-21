@@ -12,3 +12,6 @@ Changelog
 - #2602355: Add separate audit log entry for each item that is restored or
   expunged. Log correct action for expunge script.
   [2019-02-20]
+
+- Fix test
+  [2019-06-21]
