@@ -15,3 +15,7 @@ Changelog
 
 - Fix test
   [2019-06-21]
+
+- #2926649: Fix garbage can view when folder contents contains a title with
+  non-ascii characters.
+  [JL 2019-09-11]

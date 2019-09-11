@@ -36,8 +36,16 @@ class SiteGarbagecanView(BrowserView):
                       reverse=True)
 
     def folder_contents(self, folderish):
-        return ['{} ({})'.format(i.title, i.portal_type)
-                for i in folderish.objectValues()]
+        contents = list()
+        for item in folderish.objectValues():
+            title = item.title
+            if isinstance(title, unicode):
+                title = title.encode('utf-8')
+
+            if not title:
+                title = item.id
+            contents.append('{} ({})'.format(title, item.portal_type))
+        return contents
 
     def user_display_name(self, username):
         display = None
