@@ -19,3 +19,7 @@ Changelog
 - #2926649: Fix garbage can view when folder contents contains a title with
   non-ascii characters.
   [JL 2019-09-11]
+
+- #2960530: Use an annotation on the site to indicate if the package is
+  installed
+  [JL 2019-10-01]

@@ -20,5 +20,14 @@
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
 
+  <genericsetup:upgradeStep
+    source="1000"
+    destination="1001"
+    title="Upgrade to 1001"
+    description="Upgrade to 1001"
+    profile="collective.garbagecan:default"
+    handler=".upgradesteps.upgrade_to_1001"
+    />
+
 </configure>
 

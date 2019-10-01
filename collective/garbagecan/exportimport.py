@@ -1,6 +1,7 @@
 from zope.annotation.interfaces import IAnnotations
 
 from collective.garbagecan.garbagecan import GARBAGECAN_KEY
+from collective.garbagecan.utils import GARBAGECAN_INSTALLED_KEY
 
 
 def uninstall(context):
@@ -9,6 +10,15 @@ def uninstall(context):
 
     portal = context.getSite()
     annotations = IAnnotations(portal)
-    if GARBAGECAN_KEY not in annotations:
+    if GARBAGECAN_KEY in annotations:
+        del annotations[GARBAGECAN_KEY]
+    if GARBAGECAN_INSTALLED_KEY in annotations:
+        del annotations[GARBAGECAN_INSTALLED_KEY]
+
+
+def install(context):
+    if not context.readDataFile('collective.garbagecan.txt'):
         return
-    del annotations[GARBAGECAN_KEY]
+    portal = context.getSite()
+    annotations = IAnnotations(portal)
+    annotations[GARBAGECAN_INSTALLED_KEY] = True

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<import-steps>
+    <import-step id="collective.garbagecan.install" version="3"
+        handler="collective.garbagecan.exportimport.install"
+        title="Install step for collective.garbagecan">
+    </import-step>
+</import-steps>

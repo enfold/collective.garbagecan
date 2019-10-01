@@ -1,6 +1,9 @@
 from Products.CMFCore.utils import getToolByName
+from zope.annotation.interfaces import IAnnotations
 from zope.component.hooks import getSite
 from zope.globalrequest import getRequest
+
+GARBAGECAN_INSTALLED_KEY = 'collective.garbagecan.isinstalled'
 
 
 def getUser():
@@ -22,10 +25,5 @@ def getUser():
 def isInstalled(site=None):
     if site is None:
         site = getSite()
-    try:
-        qi = getToolByName(site, 'portal_quickinstaller')
-    except AttributeError:
-        return False
-    prods = qi.listInstalledProducts()
-    gc = [p for p in prods if p['id'] == 'collective.garbagecan']
-    return gc and True or False
+    annotations = IAnnotations(site)
+    return annotations.get(GARBAGECAN_INSTALLED_KEY, False)
