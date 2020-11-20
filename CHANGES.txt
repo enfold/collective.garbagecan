@@ -23,3 +23,6 @@ Changelog
 - #2960530: Use an annotation on the site to indicate if the package is
   installed
   [JL 2019-10-01]
+
+- #3606514: Fix typo
+  [JL 2020-11-20]
