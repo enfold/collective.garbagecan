@@ -182,6 +182,7 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+default.profraw
 
 
 #############
@@ -196,11 +197,13 @@ $RECYCLE.BIN/
 dist/
 build/
 eggs/
+lib/
 parts/
 var/
 sdist/
 develop-eggs/
 .installed.cfg
+pyvenv.cfg
 
 # Installer logs
 pip-log.txt
