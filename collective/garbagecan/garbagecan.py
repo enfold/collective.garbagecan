@@ -3,7 +3,7 @@ from datetime import datetime
 from Acquisition import aq_base
 from BTrees.OOBTree import OOBTree
 
-from zope.interface import implements
+from zope.interface import implementer
 from zope.component import adapts
 from zope.component.hooks import getSite
 from zope.annotation.interfaces import IAnnotations
@@ -26,10 +26,10 @@ class ExistingId(Exception):
     """Raised when there is already an item with same id as undeleted one"""
 
 
+@implementer(IGarbageStorage)
 class GarbageStorage(object):
 
     adapts(INavigationRoot)
-    implements(IGarbageStorage)
 
     def __init__(self, context):
         self.annotations = IAnnotations(context)
