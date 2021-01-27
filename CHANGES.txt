@@ -4,6 +4,8 @@ Changelog
 0.5 (unreleased)
 ----------------
 
+- Added compatibility with Plone 5.2, Python 3.5-3.8
+
 - Adjust garbage can view template so that it doesn't break when an object doesn't
   have the title, description, or portal_type attributes.
 
