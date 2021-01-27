@@ -157,7 +157,7 @@ class SiteGarbagecanView(BrowserView):
                               if k.startswith('widgets.container_gone_')]
         newids = [self.request[k] for k in self.request.keys()
                   if k.startswith('widgets.existing_id_')]
-        self.newids = map(idnormalizer.normalize, newids)
+        self.newids = list(map(idnormalizer.normalize, newids))
         oldselected = self.request.get('widgets.selected', None)
         oldselected = oldselected.split()
         self.restore(oldselected=oldselected)
