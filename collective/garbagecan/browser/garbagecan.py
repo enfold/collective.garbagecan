@@ -39,8 +39,6 @@ class SiteGarbagecanView(BrowserView):
         contents = list()
         for item in folderish.objectValues():
             title = item.title
-            if isinstance(title, unicode):
-                title = title.encode('utf-8')
 
             if not title:
                 title = item.id
