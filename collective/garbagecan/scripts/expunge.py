@@ -44,8 +44,6 @@ def main(argv=sys.argv):
     filepath = sys.argv[1]
     os.environ['ZOPE_CONFIG'] = filepath
     sys.argv = ['']
-    from Zope2.Startup.run import configure
-    configure(os.environ['ZOPE_CONFIG'])
     app = spoofRequest(Zope2.app())
     request = app.REQUEST
     site = app.unrestrictedTraverse(site_name)
