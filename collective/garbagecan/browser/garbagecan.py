@@ -11,9 +11,9 @@ from plone.api import portal
 from plone.api import user
 from plone.i18n.normalizer import idnormalizer
 
-from ..interfaces import _
-from ..interfaces import IGarbageStorage
-from ..utils import getUser
+from collective.garbagecan.interfaces import _
+from collective.garbagecan.interfaces import IGarbageStorage
+from collective.garbagecan.utils import getUser
 
 
 try:

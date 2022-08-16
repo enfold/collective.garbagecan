@@ -1,18 +1,20 @@
-from datetime import datetime
-
 from Acquisition import aq_base
 from BTrees.OOBTree import OOBTree
 
-from zope.interface import implementer
-from zope.component import adapts
-from zope.component.hooks import getSite
-from zope.annotation.interfaces import IAnnotations
+from collective.garbagecan.events import GarbageRestoredEvent
+from collective.garbagecan.events import GarbageDeletedEvent
+from collective.garbagecan.interfaces import IGarbageStorage
+from collective.garbagecan.utils import getUser
+from collective.garbagecan.utils import isInstalled
 
 from plone.app.layout.navigation.interfaces import INavigationRoot
 
-from .interfaces import IGarbageStorage
-from .utils import getUser
-from .utils import isInstalled
+from zope.annotation.interfaces import IAnnotations
+from zope.interface import implementer
+from zope.component import adapts
+from zope.component.hooks import getSite
+from zope.event import notify
+from datetime import datetime
 
 
 GARBAGECAN_KEY = 'collective.garbagecan'
@@ -50,6 +52,7 @@ class GarbageStorage(object):
         user = getUser()
         item.garbagecan_deleted_by = user
         self.annotations[GARBAGECAN_KEY][key] = item
+        notify(GarbageDeletedEvent(item))
 
     def get_key(self, item):
         return '{}:{}'.format('/'.join(item.getPhysicalPath()),
@@ -110,6 +113,7 @@ class GarbageStorage(object):
             item.id = item_id
             parent._setObject(item_id, aq_base(item))
             del self.annotations[GARBAGECAN_KEY][key]
+            notify(GarbageRestoredEvent(item.__of__(parent)))
 
 
 def handle_deletion(obj, event):
