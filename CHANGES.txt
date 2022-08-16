@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.7 (unreleased)
+0.7 (2022-08-16)
 ----------------
 
 - #4366655: Fire events when an item is sent to the garbage can and when it
