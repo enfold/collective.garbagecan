@@ -25,5 +25,7 @@ def getUser():
 def isInstalled(site=None):
     if site is None:
         site = getSite()
+    if site is None:
+        return False
     annotations = IAnnotations(site)
     return annotations.get(GARBAGECAN_INSTALLED_KEY, False)
