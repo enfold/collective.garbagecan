@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.8 (unreleased)
+0.8 (2025-08-01)
 ----------------
 
 - Reimplement the expunge script as a zopectl command. Leave the previous one
