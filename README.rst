@@ -23,8 +23,7 @@ Expunging old objects from a cron job
 The package includes a script for expunging files older than a specified
 number of days. From the buildout directory run:
 
-$ bin/expunge parts/client1/etc/zope.conf Plone 45
+$ bin/instance expunge path/to/logs/expunge_garbage.log Plone 45
 
-The first parameter is the configuration file of one of the installed
-clients, the second parameter is the site name, and the last parameter is
-the number of days.
+The first parameter is the log file, the second parameter is the site ID,
+and the last parameter is the number of days.
