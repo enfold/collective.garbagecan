@@ -50,6 +50,8 @@ setup(
     },
     entry_points="""
       # -*- Entry points: -*-
+      [zopectl.command]
+      expunge = collective.garbagecan.scripts.new_expunge:entrypoint
 
       [z3c.autoinclude.plugin]
       target = plone

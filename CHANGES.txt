@@ -4,7 +4,9 @@ Changelog
 0.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Reimplement the expunge script as a zopectl command. Leave the previous one
+  for compatibility
+  [frapell]
 
 
 0.7 (2022-08-16)
